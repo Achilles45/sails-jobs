@@ -5,11 +5,9 @@ module.exports = {
   description: 'Signin user.',
 
   inputs: {
-    userName:{
-      type: "string",
-    },
     emailAddress:{
-      type: "string"
+      type: "string",
+      required: true
     },
     password:{
       type: "string",
@@ -31,25 +29,26 @@ module.exports = {
     try {
       //Allow a user to login with username & passowrd or emailAddress & password
       //First check if a user with the email address provided exists
-      const user = await User.findOne({userName: inputs.userName, emailAddress: inputs.emailAddress});
+      const user = await User.findOne({emailAddress: inputs.emailAddress})
 
       //Check now if the user exists
       if(!user){
         return exits.notRegistered({
-          message: "Oops! This is not a registered user"
+          error: "Oops! This is not a registered user",
         })
       }
 
       //Now check if the passwords match since the user was found in our database
       await sails.helpers.passwords.checkPassword(inputs.password, user.password)
-      .intercept("incorrect", (error)=>{
+      // eslint-disable-next-line no-unused-vars
+      .intercept("incorrect", (_error)=>{
         return exits.badCombo({
-          message: "Oops! Your credentials did not match"
+          error: "Oops! Your credentials did not match"
         })
       })
 
       //Generate a new token
-      const token = await sails.helpers.generateNewJwtToken(user.userName);
+      const token = await sails.helpers.generateNewJwtToken(user.emailAddress);
 
       //Set the user
       this.req.me = user;

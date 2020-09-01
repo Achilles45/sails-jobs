@@ -8,61 +8,67 @@
 module.exports = {
 
   attributes: {
-    //Email address of the user
+    firstName:{
+      type: "string",
+      required: true,
+      example: "Achilles Usuoyibo",
+      description: "A representation of the user's name"
+    },
+    lastName:{
+      type: "string",
+      required: true,
+      example: "Achilles Usuoyibo",
+      description: "A representation of the user's name"
+    },
     emailAddress:{
       type: "string",
       required: true,
       isEmail: true,
+      example: "achilles@gmail.com",
       unique: true,
-      example: "example@gmail.com",
-      description: "A representation of the users email address"
+      description: "The users valid email address"
     },
-    userName:{
+    phoneNumber:{
+      type: "number",
+      required: true,
+      unique: true,
+      example: 09098982644,
+      description: "The phone number of the user"
+    },
+    accountType:{
       type: "string",
       required: true,
-      example: "Achilles45",
-      description: "A representation of the users username"
+      description: "A user can either be a regular job seeker or a company that is looking to hire talents",
+      example: "Talent || Employer"
     },
-    //Full name of the user
-    fullName:{
-      type: "string",
-      required: true,
-      example: "Achilles Usuoyibo",
-      description: "A representation of the users full name"
-    },
-    //Password of the user
     password:{
       type: "string",
       required: true,
-      example: "sfsfkhf4r8730nm1mq2sdgnarklfgm",
-      description: "A representation of the users encrypted password"
+      description: "A secured hashed version of the users password",
+      example: "achillled7394578sdjdujwe"
+    },
+    listings:{
+      collection: 'Listing',
+      via: "lister"
+    },
+    applications:{
+      collection: 'Application',
+      via: "applicant"
     }
-    //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
-    //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
-    //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-
-
-    //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
-    //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
-    //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
-
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
-    //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
-    //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-
   },
-  //Do not return the password of the user when you return data
+  //Custom response to avoid sending back password back to the user
   customToJSON: function(){
     return _.omit(this, ["password"])
   },
-  //Hash the password before sending to database using the beforeCreate hook
+  //Hash the password before sending it to DB
   beforeCreate: function(values, proceed){
     sails.helpers.passwords.hashPassword(values.password)
+    // eslint-disable-next-line handle-callback-err
     .exec((err, hashedPassword)=>{
-      values.password = hashedPassword
-      proceed()
+      values.password = hashedPassword;
+      return proceed();
     })
   }
 
 };
+

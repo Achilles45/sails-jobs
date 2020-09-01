@@ -2,88 +2,96 @@ module.exports = {
 
   friendlyName: 'Signup',
 
-  description: 'Ghis function creates a new user and add same to the database',
+  description: 'Signup user.',
 
   inputs: {
+    firstName:{
+      type: "string",
+      required: true,
+      minLength:5,
+      example: "Achilles"
+    },
+    lastName:{
+      type: "string",
+      required: true,
+      minLength:5,
+      example: "Usuoyibo"
+    },
     emailAddress:{
       type: "string",
       required: true,
-      minLength: 5,
+      minLength:5,
+      isEmail: true,
+      unique: true,
+      example: "achillesusuoyibo7@gmail.com"
     },
-    userName:{
+    phoneNumber:{
+      type: "number",
+      required: true,
+      example: 09048394833
+    },
+    accountType:{
       type: "string",
       required: true,
-    },
-    fullName:{
-      type: "string",
-      required: true,
-      minLength: 5
+      example: "Talent || Employer"
     },
     password:{
       type: "string",
-      required: true,
-      // minLength: 5,
-      maxLength: 200
+      required: true
     }
   },
 
   exits: {
-    success:{
-      description: "Account successfully created"
-    },
-    emailAlreadyExists:{
-      description: "The email address is already in use"
-    },
-    invalidPasswordLength:{
-      description: "The password is not long enough"
-    },
     badRequest:{
-      description: "Something went wrong"
+      description: "A bad request was made"
     },
-    incompleteFileds:{
-      description: "User did not completely fill out the registration form"
+    emailAlreadyInUse:{
+      description: "Email address is already in use"
+    },
+    invalid:{
+      description: "Invalid request"
     }
   },
 
+
   fn: async function (inputs, exits) {
     try {
-      //Convert inputed email to lowercase
+      //Convert email address to lower case just to be defensive
       const newEmailAddress = inputs.emailAddress.toLowerCase();
 
-      //Check if the password is valid
-      if(inputs.password.length < 5){
-        return exits.invalidPasswordLength({message: "The password provided is too short"})
-      }
-
-      //Now create this user from the User model
+      //Now try to create a new user
       const newUser = await User.create({
         id: sails.helpers.getUuid(),
-        userName: inputs.userName,
+        firstName: inputs.firstName,
+        lastName: inputs.lastName,
         emailAddress: newEmailAddress,
-        fullName: inputs.fullName,
+        phoneNumber: inputs.phoneNumber,
+        accountType: inputs.accountType,
         password: inputs.password
-      }).fetch()
+      }).fetch();
 
-      //Now generate a token for this new user
-      const token = await sails.helpers.generateNewJwtToken(newEmailAddress || user.userName);
+      //Generate a new jwt token
+      const token = await sails.helpers.generateNewJwtToken(newEmailAddress);
 
-      //If the code gets here, it means everything is fine
       this.req.me = newUser;
-
-      //Now return success message
+      //Return your exits
       return exits.success({
-        message: `A new account for ${newUser.emailAddress} was successfully created`,
+        message: "You have successfully signed up to our application",
         data: newUser,
         token
       })
     } catch (error) {
-      sails.log(error)
-      //Check if if a user has already used this email address
-      if(error.code == "E_UNIQUE"){
-        return exits.emailAlreadyExists({
-          message: "Oops! This email is already taken by a jobfair user"
+      sails.log.error(error)
+      if(error.code === "E_UNIQUE"){
+        return exits.emailAlreadyInUse({
+          message: "Oops! It seems like either this email or phone number is already associated with another account"
         })
       }
+      return exits.invalid({
+        message: `${error.message}, creating a new account`
+      })
     }
   }
+
+
 };

@@ -17,6 +17,11 @@ module.exports.policies = {
   *                                                                          *
   ***************************************************************************/
 
-  // '*': true,
-
+  '*': "is-logged-in",
+  "home": true,
+  "listing/show": true,
+  "listing/filter": true,
+  "user/signin": true,
+  "user/signup": true,
+  "listing/all": true,
 };
