@@ -24,4 +24,5 @@ module.exports.policies = {
   "user/signin": true,
   "user/signup": true,
   "listing/all": true,
+  "listing/edit": ["is-logged-in", "is-listing-owner"]
 };

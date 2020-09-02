@@ -1,16 +1,15 @@
-module.exports = async function(req, res, proceed){
+module.exports = async function (req, res, proceed) {
     try {
-        //First find the listings exists
-        const listing = await Listing.findOne({id: req.params.id})
-        if(!listing){
-            res.status(404).json({message: "No listing was found to match this ID"})
-        }if(req.me.id == listing.lister){
-            proceed()
-        }else{
-            res.status(401)
-            .json({message: "Only listing owner can perform this action"})
+        const listing = await Listing.findOne({ id: req.params.id });
+        if (_.isUndefined(listing)) return res.status(404).json({ error: "This listing does not exist" })
+        if (req.me.id == listing.lister) {
+            proceed();
+        } else {
+            res
+                .status(401)
+                .json({ error: "Only listing owner can perform this action" });
         }
     } catch (error) {
-        res.status(401).json({message: error.message})
+        res.status(401).json({ error: error.message });
     }
-}
+};
